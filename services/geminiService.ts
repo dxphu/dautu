@@ -1,22 +1,24 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { MarketPrices, PortfolioStatus, AssetType } from "../types";
+import { GEMINI_API_KEY } from "../config";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+// Khởi tạo AI sử dụng key từ file config
+const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
 export const fetchMarketPrices = async (): Promise<MarketPrices> => {
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: "Get the current DOJI Gold price per tael (lượng) and the current USDT/VND exchange rate on Binance P2P in Vietnam. Provide only the numerical values.",
+      contents: "Lấy giá vàng DOJI SJC hiện tại (VND/lượng) và tỷ giá USDT/VND trên Binance P2P tại Việt Nam. Chỉ trả về các con số.",
       config: {
         tools: [{ googleSearch: {} }],
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            gold_price_vnd: { type: Type.NUMBER, description: "DOJI Gold SJC price per tael in VND" },
-            usdt_price_vnd: { type: Type.NUMBER, description: "USDT price in VND" }
+            gold_price_vnd: { type: Type.NUMBER, description: "Giá vàng DOJI SJC mỗi lượng bằng VND" },
+            usdt_price_vnd: { type: Type.NUMBER, description: "Giá USDT bằng VND" }
           },
           required: ["gold_price_vnd", "usdt_price_vnd"]
         }
@@ -25,13 +27,12 @@ export const fetchMarketPrices = async (): Promise<MarketPrices> => {
 
     const data = JSON.parse(response.text || "{}");
     return {
-      gold_price_vnd: data.gold_price_vnd || 80000000, // Fallback price
-      usdt_price_vnd: data.usdt_price_vnd || 25400,   // Fallback price
+      gold_price_vnd: data.gold_price_vnd || 80000000,
+      usdt_price_vnd: data.usdt_price_vnd || 25400,
       timestamp: new Date().toISOString()
     };
   } catch (error) {
     console.error("Error fetching market prices:", error);
-    // Return dummy data if search fails (e.g. rate limit)
     return {
       gold_price_vnd: 82500000,
       usdt_price_vnd: 25450,
@@ -42,14 +43,13 @@ export const fetchMarketPrices = async (): Promise<MarketPrices> => {
 
 export const getRebalanceAdvice = async (status: PortfolioStatus): Promise<string> => {
   const prompt = `
-    Analyze this financial portfolio for rebalancing. 
-    Total Value: ${status.totalValueVnd.toLocaleString()} VND.
-    Assets: ${status.assets.map(a => `${a.type}: ${a.currentPercentage.toFixed(2)}% (Current Value: ${a.currentValue.toLocaleString()} VND)`).join(', ')}.
-    Target: 33.33% each. 
-    Balance threshold: +/- 5%.
-    Identify which assets need to be bought or sold to return to an equal 1/3 split. 
-    Keep the advice concise and actionable for a professional investor in Vietnam.
-    Lưu ý hãy trả lời bằng tiêng việt
+    Phân tích danh mục tài chính này để cân bằng lại.
+    Tổng giá trị: ${status.totalValueVnd.toLocaleString()} VND.
+    Tài sản: ${status.assets.map(a => `${a.type}: ${a.currentPercentage.toFixed(2)}% (Giá trị: ${a.currentValue.toLocaleString()} VND)`).join(', ')}.
+    Mục tiêu: 33.33% cho mỗi loại.
+    Ngưỡng cân bằng: +/- 5%.
+    Xác định tài sản nào cần mua hoặc bán để đưa về tỷ lệ 1/3 đều nhau.
+    Đưa ra lời khuyên ngắn gọn, súc tích bằng tiếng Việt cho nhà đầu tư chuyên nghiệp.
   `;
 
   const response = await ai.models.generateContent({
@@ -57,5 +57,5 @@ export const getRebalanceAdvice = async (status: PortfolioStatus): Promise<strin
     contents: prompt
   });
 
-  return response.text || "No advice available at this time.";
+  return response.text || "Hiện tại không có lời khuyên nào.";
 };
