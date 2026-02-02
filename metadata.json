@@ -1,0 +1,5 @@
+{
+  "name": "ZenWealth - Balanced Portfolio Manager",
+  "description": "A financial dashboard to manage and balance holdings in Gold (Doji), Savings (VND), and USDT (Binance) with AI-powered rebalancing and Telegram notifications.",
+  "requestFramePermissions": []
+}
