@@ -49,7 +49,8 @@ export const getRebalanceAdvice = async (status: PortfolioStatus): Promise<strin
     Mục tiêu: 33.33% cho mỗi loại.
     Ngưỡng cân bằng: +/- 5%.
     Xác định tài sản nào cần mua hoặc bán để đưa về tỷ lệ 1/3 đều nhau.
-    Đưa ra lời khuyên ngắn gọn, súc tích bằng tiếng Việt cho nhà đầu tư chuyên nghiệp.
+    Đưa ra lời khuyên ngắn gọn cần mua gì, mua bao nhiêu để cân bằng lại danh mục, súc tích bằng tiếng Việt cho nhà đầu tư chuyên nghiệp.
+    
   `;
 
   const response = await ai.models.generateContent({
